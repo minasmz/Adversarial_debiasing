@@ -35,7 +35,8 @@ class AdversarialDebiasing(Transformer):
                  batch_size=128,
                  classifier_num_hidden_units=200,
                  debias=True,
-                 equal_opportunity=True,
+                 #equal_opportunity=True,
+                 fairness_def='equal_opportunity',
                  saved_model=None):
         """
         Args:
@@ -72,7 +73,7 @@ class AdversarialDebiasing(Transformer):
         self.batch_size = batch_size
         self.classifier_num_hidden_units = classifier_num_hidden_units
         self.debias = debias
-        self.equal_opportunity = equal_opportunity
+        #self.equal_opportunity = equal_opportunity
         self.verbose = verbose
         assert fairness_def in ['parity', 'equal_odds', 'equal_opportunity'], \
             "fairness_def must be one of: 'parity', 'equal_odds', equal_opportunity' "
@@ -169,7 +170,7 @@ class AdversarialDebiasing(Transformer):
 
             if self.debias:
                 # Obtain adversary predictions and adversary loss
-                if self.equal_opportunity:
+                if self.fairness_def == 'equal_opportunity':
                     self.features_ph_1 = tf.placeholder(tf.float32, shape=[None, self.features_dim])
                     self.protected_attributes_ph_1 = tf.placeholder(tf.float32, shape=[None, 1])
                     self.true_labels_ph_1 = tf.placeholder(tf.float32, shape=[None, 1])
@@ -255,7 +256,7 @@ class AdversarialDebiasing(Transformer):
                                        self.protected_attributes_ph: batch_protected_attributes,
                                        self.keep_prob: 0.8}
                     if self.debias:
-                        if self.equal_opportunity:
+                        if self.fairness_def == 'equal_opportunity':
                             batch_feed_dict_eqo = {self.features_ph: batch_features,
                                                    self.true_labels_ph: batch_labels,
                                                    self.protected_attributes_ph: batch_protected_attributes,

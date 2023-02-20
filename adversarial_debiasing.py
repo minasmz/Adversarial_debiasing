@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 
 try:
     import tensorflow.compat.v1 as tf
@@ -17,7 +18,6 @@ class AdversarialDebiasing(Transformer):
     predictions [5]_. This approach leads to a fair classifier as the
     predictions cannot carry any group discrimination information that the
     adversary can exploit.
-
     References:
         .. [5] B. H. Zhang, B. Lemoine, and M. Mitchell, "Mitigating Unwanted
            Biases with Adversarial Learning," AAAI/ACM Conference on Artificial
@@ -35,9 +35,9 @@ class AdversarialDebiasing(Transformer):
                  batch_size=128,
                  classifier_num_hidden_units=200,
                  debias=True,
-                 #equal_opportunity=True,
                  fairness_def='equal_opportunity',
-                 saved_model=None):
+                 saved_model=None,
+                 verbose = True):
         """
         Args:
             unprivileged_groups (tuple): Representation for unprivileged groups
@@ -77,7 +77,7 @@ class AdversarialDebiasing(Transformer):
         self.verbose = verbose
         assert fairness_def in ['parity', 'equal_odds', 'equal_opportunity'], \
             "fairness_def must be one of: 'parity', 'equal_odds', equal_opportunity' "
-
+        self.fairness_def = fairness_def
         self.features_dim = None
         self.features_ph = None
         self.protected_attributes_ph = None
@@ -132,10 +132,8 @@ class AdversarialDebiasing(Transformer):
     def fit(self, dataset):
         """Compute the model parameters of the fair classifier using gradient
         descent.
-
         Args:
             dataset (BinaryLabelDataset): Dataset containing true labels.
-
         Returns:
             AdversarialDebiasing: Returns self.
         """
@@ -298,7 +296,6 @@ class AdversarialDebiasing(Transformer):
     def predict(self, dataset):
         """Obtain the predictions for the provided dataset using the fair
         classifier learned.
-
         Args:
             dataset (BinaryLabelDataset): Dataset containing labels that needs
                 to be transformed.
